@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Quản lý Thiết bị Chiếu sáng</title>
+  <script src="https://cdn.jsdelivr.net/npm/web3@1.10.0/dist/web3.min.js"></script>
+</head>
+<body>
+  <h2>Thêm thiết bị</h2>
+  <input id="maThietBi" placeholder="Nhập mã thiết bị">
+  <button onclick="themThietBi()">Thêm</button>
+
+  <h2>Bật/Tắt thiết bị</h2>
+  <input id="maThietBiBatTat" placeholder="Nhập mã thiết bị">
+  <button onclick="batTatThietBi()">Bật/Tắt</button>
+
+  <h2>Trạng thái thiết bị</h2>
+  <input id="maThietBiTrangThai" placeholder="Nhập mã thiết bị">
+  <button onclick="layTrangThai()">Xem trạng thái</button>
+  <p id="ketQuaTrangThai"></p>
+
+  <script>
+    let web3;
+    let contract;
+    let userAccount;
+
+    const contractAddress = "PASTE_CONTRACT_ADDRESS_HERE"; // Thay bằng địa chỉ hợp đồng
+    const abi = []; // Dán ABI của Smart Contract tại đây
+
+    window.addEventListener('load', async () => {
+      if (window.ethereum) {
+        web3 = new Web3(window.ethereum);
+        try {
+          await window.ethereum.enable();
+          const accounts = await web3.eth.getAccounts();
+          userAccount = accounts[0];
+          contract = new web3.eth.Contract(abi, contractAddress);
+          console.log("✅ Kết nối thành công với MetaMask!");
+        } catch (error) {
+          console.error("❌ Lỗi khi kết nối MetaMask:", error);
+        }
+      } else {
+        alert("🔴 Vui lòng cài đặt MetaMask để tiếp tục!");
+      }
+    });
+
+    async function themThietBi() {
+      const id = document.getElementById("maThietBi").value;
+      if (!id) {
+        alert("❌ Mã thiết bị không được để trống!");
+        return;
+      }
+
+      try {
+        await contract.methods.themThietBi(id).send({ from: userAccount });
+        alert("✅ Thiết bị đã được thêm thành công!");
+      } catch (error) {
+        console.error("❌ Lỗi khi thêm thiết bị:", error);
+      }
+    }
+
+    async function batTatThietBi() {
+      const id = document.getElementById("maThietBiBatTat").value;
+      if (!id) {
+        alert("❌ Mã thiết bị không được để trống!");
+        return;
+      }
+
+      try {
+        await contract.methods.batTatThietBi(id).send({ from: userAccount });
+        alert("✅ Đã thay đổi trạng thái thiết bị!");
+      } catch (error) {
+        console.error("❌ Lỗi khi bật/tắt thiết bị:", error);
+      }
+    }
+
+    async function layTrangThai() {
+      const id = document.getElementById("maThietBiTrangThai").value;
+      if (!id) {
+        alert("❌ Mã thiết bị không được để trống!");
+        return;
+      }
+
+      try {
+        const result = await contract.methods.layTrangThaiThietBi(id).call();
+        document.getElementById("ketQuaTrangThai").innerText =
+          `🟢 Trạng thái: ${result[0] ? "Bật" : "Tắt"} | 🕒 Tổng thời gian sử dụng: ${result[1]} giờ`;
+      } catch (error) {
+        console.error("❌ Lỗi khi lấy trạng thái thiết bị:", error);
+      }
+    }
+  </script>
+</body>
+</html>
